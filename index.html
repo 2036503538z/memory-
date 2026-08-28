@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f3f0e8" />
+    <meta name="description" content="甜甜与炜炜的私人回忆录：我们把时间留在这里。" />
+    <title>甜甜 × 炜炜 / 我们把时间留在这里</title>
+    <link rel="icon" href="assets/memory-01.jpg" type="image/jpeg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles-premium.css" />
+  </head>
+  <body>
+    <div class="public-lock" id="publicLock" hidden>
+      <div class="public-lock-panel">
+        <p class="eyebrow">甜甜 × 炜炜</p>
+        <h1>只给知道的人<br /><em>打开这一页。</em></h1>
+        <p>输入你们的访问密码，进入回忆录。</p>
+        <form id="publicAuthForm">
+          <label for="publicAuthPassword">访问密码</label>
+          <input id="publicAuthPassword" type="password" inputmode="numeric" autocomplete="current-password" maxlength="64" required />
+          <button class="save-button" type="submit"><span>进入回忆录</span><span aria-hidden="true">↗</span></button>
+          <p class="form-status" id="publicAuthStatus" role="status"></p>
+        </form>
+      </div>
+    </div>
+    <div class="site-shell" id="top">
+      <header class="topbar">
+        <a class="wordmark" href="#top" aria-label="回到开头">
+          <span class="wordmark-mark">O / O</span>
+          <span class="wordmark-name">our archive</span>
+        </a>
+        <nav class="topnav" aria-label="主导航">
+          <a href="#story">回忆录</a>
+          <a href="#diary">日记</a>
+        </nav>
+          <button class="topbar-action" type="button" data-scroll-diary>
+          <span>继续写一页</span>
+          <span class="arrow-icon" aria-hidden="true">↗</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="hero section-shell" aria-labelledby="hero-title">
+          <div class="hero-index" aria-hidden="true">
+            <span>01</span>
+            <span class="index-line"></span>
+            <span>2023—NOW</span>
+          </div>
+          <div class="hero-copy">
+            <p class="eyebrow">甜甜 × 炜炜的小小收藏</p>
+            <div class="hero-names" aria-label="甜甜和炜炜">
+              <div class="hero-name-block">
+                <span class="name-role">她 / HER</span>
+                <strong>甜甜</strong>
+                <small>生日 · 09 / 06</small>
+              </div>
+              <span class="name-join" aria-hidden="true">×</span>
+              <div class="hero-name-block hero-name-block--right">
+                <span class="name-role">你 / YOU</span>
+                <strong>炜炜</strong>
+                <small>生日 · 10 / 19</small>
+              </div>
+            </div>
+            <h1 id="hero-title">我们把时间<br /><em>留在这里</em></h1>
+            <p class="hero-lede">从 2024 年 2 月 17 日开始，普通的日子有了收藏的理由。</p>
+            <div class="hero-details">
+              <div>
+                <span class="detail-label">开始于</span>
+                <strong>2024 / 02 / 17</strong>
+              </div>
+              <div>
+                <span class="detail-label">记录者</span>
+                <strong>甜甜 + 炜炜</strong>
+              </div>
+            </div>
+            <button class="text-link" type="button" data-scroll-story>
+              <span>从第一页开始</span>
+              <span class="arrow-icon" aria-hidden="true">↓</span>
+            </button>
+          </div>
+          <div class="hero-collage" aria-label="回忆照片预览">
+            <figure class="hero-photo hero-photo-main photo-trigger" data-image="assets/memory-01.jpg" data-caption="我们把手比成了一个小小的心。">
+              <img src="assets/memory-01.jpg" alt="两只手在夕阳下组成心形" />
+              <figcaption>我们的第一件小事</figcaption>
+            </figure>
+            <figure class="hero-photo hero-photo-side photo-trigger" data-image="assets/memory-02.jpg" data-caption="出发这件事，本身就很值得纪念。">
+              <img src="assets/memory-02.jpg" alt="一起走在旅途中的风景" />
+              <figcaption>一起走在路上</figcaption>
+            </figure>
+            <div class="hero-stamp"><span>03</span><small>years<br />of us</small></div>
+            <div class="hero-date-dial">
+              <span>TOGETHER SINCE</span>
+              <strong>24·02·17</strong>
+              <i></i>
+              <small>the first page</small>
+            </div>
+            <div class="hero-note">往下翻开<br />我们的故事 <span aria-hidden="true">↘</span></div>
+          </div>
+        </section>
+
+        <section class="memory-book section-shell" id="story" aria-labelledby="book-title">
+          <div class="book-topline"><span>我们把时间留在这里</span><span id="bookProgress">01 / 33</span></div>
+          <div class="book-stage" id="bookStage" tabindex="0" aria-label="回忆照片翻页区">
+            <div class="book-photo-column">
+              <div class="book-photo-index" id="bookPhotoIndex">01</div>
+              <div class="book-photo-wrap">
+                <img id="bookPhoto" src="assets/chapters/01.jpg" alt="" />
+                <div class="continuation-art" id="continuationArt" hidden aria-hidden="true">
+                  <span>未完</span>
+                  <strong>待续</strong>
+                </div>
+              </div>
+            </div>
+            <div class="book-copy">
+              <h2 id="bookTitle">约你看电影</h2>
+              <p class="book-note" id="bookNote" hidden></p>
+            </div>
+          </div>
+          <div class="book-controls">
+            <button class="book-control" type="button" data-memory-prev aria-label="上一页"><span aria-hidden="true">←</span><small>上一页</small></button>
+            <button class="book-next" type="button" data-memory-next><span>下一页</span><span aria-hidden="true">↗</span></button>
+            <button class="book-control" type="button" data-memory-next aria-label="下一页"><small>继续读</small><span aria-hidden="true">→</span></button>
+          </div>
+        </section>
+
+        <section class="story section-shell legacy-story" id="legacy-story" aria-labelledby="story-title">
+          <div class="section-heading reveal">
+            <div>
+              <p class="eyebrow">A SMALL COLLECTION OF DAYS</p>
+              <h2 id="story-title">不是大事，<br /><em>是我们。</em></h2>
+            </div>
+            <p class="section-intro">回忆不只发生在远方。它藏在一起等车、分享一杯饮料、和每次说“到家告诉我”的时刻里。</p>
+          </div>
+
+          <div class="story-timeline">
+            <article class="memory memory--hero reveal">
+              <div class="memory-meta"><span>CHAPTER 01</span></div>
+              <div class="memory-media photo-trigger" data-image="assets/memory-03.jpg" data-caption="第一次见面之后，城市还是原来的城市，我们已经不是了。">
+                <img src="assets/memory-03.jpg" alt="黄昏时的城市与天空" loading="lazy" />
+              </div>
+              <div class="memory-copy">
+                <h3>第一次见面之后</h3>
+                <p>城市还是原来的城市，我们已经不是了。那天没有什么戏剧性的情节，但我记得你笑起来时，眼睛先弯了一下。</p>
+                <span class="memory-caption">THE DAY THE STORY CHANGED SHAPE</span>
+              </div>
+            </article>
+
+            <article class="memory memory--split reveal">
+              <div class="memory-meta"><span>CHAPTER 02</span></div>
+              <div class="memory-media photo-trigger" data-image="assets/memory-04.jpg" data-caption="旅行不是去哪里，是和谁一起把路走完。">
+                <img src="assets/memory-04.jpg" alt="旅途中靠近的两个人" loading="lazy" />
+              </div>
+              <div class="memory-copy">
+                <h3>第一次一起出发</h3>
+                <p>我们把行李塞得乱七八糟，却把沿途每一个小决定都记得很清楚。那次之后，“下次一起”变成了我们的口头禅。</p>
+                <span class="memory-caption">SOMEWHERE BETWEEN HERE &amp; THERE</span>
+              </div>
+            </article>
+
+            <article class="memory memory--offset reveal">
+              <div class="memory-meta"><span>CHAPTER 03</span></div>
+              <div class="memory-copy">
+                <span class="memory-number">03</span>
+                <h3>那些没有被安排的晚上</h3>
+                <p>一顿临时起意的晚饭，一条绕远的回家路。我们开始知道，最想重复的不是某个目的地，而是和你一起浪费时间。</p>
+                <span class="memory-caption">THE UNPLANNED ONES</span>
+              </div>
+              <div class="memory-media photo-trigger" data-image="assets/memory-05.jpg" data-caption="最想重复的不是目的地，是和你一起浪费时间。">
+                <img src="assets/memory-05.jpg" alt="窗边的植物和温柔光线" loading="lazy" />
+              </div>
+            </article>
+
+            <article class="memory memory--last reveal">
+              <div class="memory-meta"><span>CHAPTER 04</span></div>
+              <div class="memory-last-card">
+                <div class="last-card-mark">O / O</div>
+                <p>三年不是一个结论，是我们还在继续写的句子。</p>
+                <span>TO BE CONTINUED</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="video-chapter section-shell" id="film" aria-labelledby="film-title">
+          <div class="video-heading reveal">
+            <p class="eyebrow">留住一段画面</p>
+            <h2 id="film-title">有些话，<br /><em>让画面替我们说。</em></h2>
+            <p>把你们最想留下的那段视频放在这里。它会是回忆录的中场，也是进入日记之前的一次停顿。</p>
+          </div>
+          <div class="video-frame reveal">
+            <video id="memoryVideo" controls preload="metadata" poster="assets/memory-01.jpg" aria-label="我们的回忆视频">
+              <p>当前还没有添加视频。</p>
+            </video>
+            <div class="video-empty" id="videoEmpty">
+              <span class="play-mark" aria-hidden="true">▶</span>
+              <span>这是视频的位置</span>
+              <small>点击右下角，替换成你们的片段</small>
+            </div>
+            <div class="video-frame-footer">
+              <span>我们的片段</span>
+              <label class="upload-video-label" for="videoUpload">替换视频 <span aria-hidden="true">↗</span></label>
+              <input id="videoUpload" type="file" accept="video/*" hidden />
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter-break section-shell" aria-label="回忆录结束语">
+          <p class="eyebrow">故事还会继续</p>
+          <p class="break-quote">“下一页，<br />也一起写。”</p>
+          <button class="text-link text-link--light" type="button" data-scroll-diary>
+            <span>打开日记</span>
+            <span class="arrow-icon" aria-hidden="true">↓</span>
+          </button>
+        </section>
+
+        <section class="diary section-shell" id="diary" aria-labelledby="diary-title">
+          <div class="diary-header reveal">
+            <div>
+              <p class="eyebrow">一起写下</p>
+              <h2 id="diary-title">还没写完的<br /><em>每一天。</em></h2>
+            </div>
+            <div class="diary-header-actions">
+              <button class="cloud-button" type="button" id="cloudOpen">开启双人同步 <span aria-hidden="true">↗</span></button>
+              <div class="anniversary-counter" aria-live="polite">
+              <span class="detail-label">我们已经一起</span>
+              <strong id="daysTogether">000</strong>
+              <span>天</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="diary-stats reveal">
+            <div class="diary-stat">
+              <span class="stat-label">下一次纪念日</span>
+              <strong id="nextAnniversary">—</strong>
+              <small id="anniversaryCountdown">—</small>
+            </div>
+            <div class="diary-stat">
+              <span class="stat-label">已经收藏</span>
+              <strong id="entryCount">03</strong>
+              <small>页日记</small>
+            </div>
+            <div class="diary-stat diary-stat--accent">
+              <span class="stat-label">今天的提示</span>
+              <strong>去走一条<br />没走过的路</strong>
+              <small>给未来留一点意外</small>
+            </div>
+          </div>
+
+          <div class="date-constellation reveal" aria-label="我们重要的日期">
+            <div class="constellation-heading"><span>重要的日期</span><small>三件要一直记得的事</small></div>
+            <div class="date-card date-card--tian">
+              <span>甜甜 / HER</span>
+              <strong>09<span>·</span>06</strong>
+              <small>她的生日</small>
+            </div>
+            <div class="date-card date-card--wei">
+              <span>炜炜 / YOU</span>
+              <strong>10<span>·</span>19</strong>
+              <small>你的生日</small>
+            </div>
+            <div class="date-card date-card--us">
+              <span>甜甜 × 炜炜</span>
+              <strong>02<span>·</span>17</strong>
+              <small>我们在一起的那天</small>
+            </div>
+          </div>
+
+          <section class="memory-rituals reveal" id="memoryRituals" aria-label="回忆仪式">
+            <div class="ritual-unit" id="onThisDay">
+              <span class="ritual-label">那年今日</span>
+              <strong id="onThisDayTitle">把今天也留住。</strong>
+              <p id="onThisDayBody"></p>
+            </div>
+            <div class="ritual-unit" id="anniversaryMoment">
+              <span class="ritual-label">纪念日</span>
+              <strong id="anniversaryMomentTitle">每一个重要日子都在靠近。</strong>
+              <p id="anniversaryMomentBody"></p>
+            </div>
+          </section>
+
+          <div class="diary-layout">
+            <form class="entry-form reveal" id="entryForm">
+              <div class="form-topline"><span>写下一页</span><span id="formMode">01 / 01</span></div>
+              <div class="entry-kind" role="radiogroup" aria-label="记录类型">
+                <label><input type="radio" name="entryType" value="diary" checked /><span>日记</span></label>
+                <label><input type="radio" name="entryType" value="capsule" /><span>时间胶囊</span></label>
+              </div>
+              <label for="entryTitle">这一页的标题</label>
+              <input id="entryTitle" name="title" type="text" placeholder="比如：下雨天也要出门" required maxlength="56" />
+              <div class="form-row">
+                <div>
+                  <label for="entryDate" id="entryDateLabel">日期（可选）</label>
+                  <input id="entryDate" name="date" type="date" />
+                </div>
+                <div>
+                  <label for="entryMood">今天的心情</label>
+                  <select id="entryMood" name="mood">
+                    <option value="soft">柔软</option>
+                    <option value="bright">明亮</option>
+                    <option value="slow">慢一点</option>
+                    <option value="wild">有点疯狂</option>
+                  </select>
+                </div>
+              </div>
+              <label for="entryBody">写几句话</label>
+              <textarea id="entryBody" name="body" rows="6" placeholder="把今天想留住的部分写下来……" required maxlength="600"></textarea>
+              <label class="photo-upload" for="entryPhoto">
+                <span class="upload-symbol" aria-hidden="true">＋</span>
+                <span><strong>放一张照片</strong><small>JPG / PNG，单张不超过 4MB</small></span>
+                <input id="entryPhoto" name="photo" type="file" accept="image/png,image/jpeg,image/webp" />
+              </label>
+              <div class="photo-preview" id="photoPreview" hidden>
+                <img id="photoPreviewImage" alt="待保存的照片预览" />
+                <button type="button" class="remove-photo" id="removePhoto" aria-label="移除照片">×</button>
+              </div>
+              <button class="save-button" type="submit"><span>保存这一页</span><span aria-hidden="true">↗</span></button>
+              <p class="form-status" id="formStatus" role="status"></p>
+            </form>
+
+            <div class="entries-panel reveal">
+              <div class="entries-heading">
+                <span>最近写下的</span>
+                <span id="entriesCountLabel">03 页</span>
+              </div>
+              <div class="entries-list" id="entriesList" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <section class="voice-page reveal" id="voicePage" aria-labelledby="voice-title">
+            <div class="voice-heading">
+              <p class="eyebrow">留声页</p>
+              <h3 id="voice-title">把声音<br /><em>留在这里。</em></h3>
+            </div>
+            <div class="voice-recorder">
+              <label class="voice-author" for="voiceAuthor">声音来自
+                <select id="voiceAuthor">
+                  <option value="甜甜">甜甜</option>
+                  <option value="炜炜">炜炜</option>
+                </select>
+              </label>
+              <div class="voice-controls">
+                <button class="voice-record" type="button" id="voiceRecord" aria-pressed="false">开始录音</button>
+                <button class="voice-stop" type="button" id="voiceStop" disabled>结束</button>
+              </div>
+              <p class="voice-status" id="voiceStatus" role="status"></p>
+            </div>
+            <div class="voice-list" id="voiceList" aria-live="polite"></div>
+          </section>
+        </section>
+      </main>
+
+      <footer class="footer section-shell">
+        <span>甜甜 × 炜炜 / 一直在写</span>
+        <span>只属于你们</span>
+        <a href="#top">回到开头 ↑</a>
+      </footer>
+    </div>
+
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="查看照片" hidden>
+      <button class="lightbox-close" type="button" id="lightboxClose" aria-label="关闭照片">×</button>
+      <figure>
+        <img id="lightboxImage" src="" alt="" />
+        <figcaption id="lightboxCaption"></figcaption>
+      </figure>
+    </div>
+
+    <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle" hidden>
+      <div class="auth-panel">
+        <button class="auth-close" type="button" id="authClose" aria-label="关闭">×</button>
+        <p class="eyebrow">只属于你们</p>
+        <h2 id="authTitle">让两个人<br /><em>写在同一页。</em></h2>
+        <p class="auth-copy" id="authCopy">两个人使用同一组专属账号登录，照片和文字就会同步到同一份回忆里。</p>
+        <form id="authForm">
+          <label for="authEmail">邮箱</label>
+          <input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com" />
+          <label for="authPassword">密码</label>
+          <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="至少 6 位" />
+          <button class="save-button" type="submit"><span id="authSubmitLabel">登录并同步</span><span aria-hidden="true">↗</span></button>
+          <button class="auth-switch" type="button" id="authSwitch">还没有账号？创建一个</button>
+          <p class="form-status" id="authStatus" role="status"></p>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="public-config.js"></script>
+    <script src="memories-data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
