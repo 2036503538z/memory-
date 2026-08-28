@@ -13,6 +13,7 @@ const publicApiReady = Boolean(publicConfig.enabled && publicConfig.baseUrl !== 
 const publicApiBase = String(publicConfig.baseUrl || "").replace(/\/$/, "");
 const OWNER_TOKENS_KEY = "our-archive-owner-tokens-v1";
 const PUBLIC_AUTH_TOKEN_KEY = "our-archive-public-session-v1";
+const sharedAuthEmail = "2036503538@qq.com";
 
 const defaultEntries = [
   { id: "sample-1", title: "雨天也要出门", date: "2025-10-02", mood: "soft", body: "本来只想在家里躺着，最后还是一起走去了街角。雨停之后，路面把灯光照得很亮。", image: "assets/memory-05.jpg", hideDate: false },
@@ -213,6 +214,7 @@ function renderEntries() {
     </article>
   `;
   }).join("");
+  installStaticImageFallbacks(list);
   renderMemoryRituals();
 }
 
@@ -303,17 +305,41 @@ function refreshMemoryBook() {
   renderMemoryPage(nextIndex, 0);
 }
 
-function setBookImage(image, source, title) {
-  image.dataset.fallbackTried = "false";
+function fallbackAssetPath(source) {
+  const value = String(source || "");
+  if (value.startsWith("assets/chapters/")) return value.replace(/^assets\/chapters\//, "");
+  if (value.startsWith("assets/")) return value.replace(/^assets\//, "");
+  return "";
+}
+
+function bindImageFallback(image, source = image?.getAttribute("src")) {
+  if (!image || image.dataset.assetFallbackBound === "true") return;
+  const fallback = fallbackAssetPath(source);
+  if (!fallback || fallback === source) return;
+  image.dataset.assetFallbackBound = "true";
   image.onerror = () => {
     if (image.dataset.fallbackTried === "true") return;
-    const fallback = String(source || "").replace(/^assets\/chapters\//, "");
-    if (!fallback || fallback === source) return;
     image.dataset.fallbackTried = "true";
     image.src = fallback;
   };
+  // The browser may have finished the failed request before app.js ran.
+  if (image.complete && image.naturalWidth === 0) {
+    image.dataset.fallbackTried = "true";
+    image.src = fallback;
+  }
+}
+
+function installStaticImageFallbacks(root = document) {
+  $$('img:not(#bookPhoto)', root).forEach((image) => bindImageFallback(image));
+}
+
+function setBookImage(image, source, title) {
+  image.onerror = null;
+  image.dataset.assetFallbackBound = "false";
+  image.dataset.fallbackTried = "false";
   image.src = source;
   image.alt = title;
+  bindImageFallback(image, source);
 }
 
 function renderMemoryPage(nextIndex = memoryIndex, direction = 1) {
@@ -525,7 +551,12 @@ function updateCloudButton() {
   }
 }
 
-function openAuth() { $("#authModal").hidden = false; $("#authEmail").focus(); }
+function openAuth() {
+  const email = $("#authEmail");
+  if (!email.value) email.value = sharedAuthEmail;
+  $("#authModal").hidden = false;
+  email.focus();
+}
 function closeAuth() { $("#authModal").hidden = true; $("#authStatus").textContent = ""; }
 
 function updateAuthMode() {
@@ -626,7 +657,7 @@ function initAuth() {
       window.setTimeout(() => $("#entryTitle").focus({ preventScroll: true }), 500);
       return;
     }
-    if (cloudSession && supabaseClient) { await supabaseClient.auth.signOut(); return; }
+    if (cloudSession && supabaseClient) { await supabaseClient.auth.signOut({ scope: "local" }); return; }
     openAuth();
   });
   $("#authClose").addEventListener("click", closeAuth);
@@ -641,8 +672,19 @@ function initAuth() {
     status.classList.remove("is-error");
     status.textContent = "正在连接共同空间……";
     const result = authMode === "signup" ? await supabaseClient.auth.signUp({ email, password }) : await supabaseClient.auth.signInWithPassword({ email, password });
-    if (result.error) { status.textContent = result.error.message; status.classList.add("is-error"); return; }
-    status.textContent = authMode === "signup" ? "账号已创建。如果邮箱验证开启，请先查收验证邮件。" : "登录成功，正在打开共同记录。";
+    if (result.error) {
+      const message = result.error.message || "请检查邮箱和密码。";
+      status.textContent = /email not confirmed/i.test(message)
+        ? "这个邮箱还没有完成验证，请先点邮件里的确认链接，或在 Supabase 用户列表中手动确认。"
+        : /invalid login credentials/i.test(message)
+          ? "邮箱或密码不正确；如果还没有账号，请先切换到“创建账号”。"
+          : message;
+      status.classList.add("is-error");
+      return;
+    }
+    status.textContent = authMode === "signup"
+      ? (result.data?.session ? "账号已创建，正在打开共同记录。" : "账号已创建，请先完成邮箱验证，再回来登录。")
+      : "登录成功，正在打开共同记录。";
   });
   updateAuthMode();
 }
@@ -964,7 +1006,17 @@ function initLightbox() {
   const image = $("#lightboxImage");
   const caption = $("#lightboxCaption");
   const close = () => { lightbox.hidden = true; document.body.classList.remove("is-lightbox-open"); image.removeAttribute("src"); };
-  $$(".photo-trigger").forEach((trigger) => trigger.addEventListener("click", () => { image.src = trigger.dataset.image; image.alt = trigger.querySelector("img")?.alt || "回忆照片"; caption.textContent = trigger.dataset.caption || ""; lightbox.hidden = false; document.body.classList.add("is-lightbox-open"); }));
+  $$(".photo-trigger").forEach((trigger) => trigger.addEventListener("click", () => {
+    image.onerror = null;
+    image.dataset.assetFallbackBound = "false";
+    image.dataset.fallbackTried = "false";
+    image.src = trigger.dataset.image;
+    image.alt = trigger.querySelector("img")?.alt || "回忆照片";
+    bindImageFallback(image, trigger.dataset.image);
+    caption.textContent = trigger.dataset.caption || "";
+    lightbox.hidden = false;
+    document.body.classList.add("is-lightbox-open");
+  }));
   $("#lightboxClose").addEventListener("click", close);
   lightbox.addEventListener("click", (event) => { if (event.target === lightbox) close(); });
   document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !lightbox.hidden) close(); });
@@ -982,6 +1034,7 @@ function initReveal() {
   revealItems.forEach((item) => observer.observe(item));
 }
 
+installStaticImageFallbacks();
 updateTogetherCounter();
 window.setInterval(updateTogetherCounter, 60000);
 initMemoryBook();
