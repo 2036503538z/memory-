@@ -312,6 +312,194 @@ function fallbackAssetPath(source) {
   return "";
 }
 
+function archiveImageCandidates(source) {
+  const value = String(source || "");
+  const fallback = fallbackAssetPath(value);
+  const candidates = [value, fallback].filter((candidate, index, list) => candidate && list.indexOf(candidate) === index);
+  return location.hostname.endsWith("github.io") ? candidates.reverse() : candidates;
+}
+
+function preloadArchiveImage(source) {
+  const candidates = archiveImageCandidates(source);
+  return new Promise((resolve) => {
+    const probe = new Image();
+    let index = 0;
+    const tryNext = () => {
+      if (index >= candidates.length) { resolve(false); return; }
+      probe.onload = () => resolve(true);
+      probe.onerror = tryNext;
+      probe.src = candidates[index++];
+    };
+    tryNext();
+  });
+}
+
+function initBirdGame(canvas, startButton, scoreElement) {
+  const context = canvas?.getContext("2d");
+  if (!context) { if (startButton) startButton.hidden = true; return; }
+  const width = canvas.width;
+  const height = canvas.height;
+  const gap = 92;
+  const pipeWidth = 34;
+  const bird = { x: 88, y: height / 2, velocity: 0, radius: 11 };
+  let pipes = [];
+  let active = false;
+  let gameOver = false;
+  let score = 0;
+  let animationFrame = 0;
+  let lastTime = 0;
+
+  const setScore = () => { if (scoreElement) scoreElement.textContent = String(score).padStart(2, "0"); };
+  const reset = () => {
+    bird.y = height / 2;
+    bird.velocity = 0;
+    pipes = [{ x: width + 30, top: 42 + Math.random() * 52, passed: false }];
+    active = true;
+    gameOver = false;
+    score = 0;
+    setScore();
+    if (startButton) startButton.hidden = true;
+  };
+  const finish = () => {
+    active = false;
+    gameOver = true;
+    if (startButton) { startButton.hidden = false; startButton.textContent = "再来一局"; }
+  };
+  const flap = () => {
+    if (!active || gameOver) { reset(); return; }
+    bird.velocity = -6.5;
+  };
+  const spawnPipe = () => {
+    const top = 26 + Math.random() * (height - gap - 72);
+    pipes.push({ x: width + 18, top, passed: false });
+  };
+  const drawCloud = (x, y, scale) => {
+    context.fillStyle = "rgba(255,250,253,.7)";
+    context.beginPath();
+    context.arc(x, y, 13 * scale, 0, Math.PI * 2);
+    context.arc(x + 15 * scale, y - 5 * scale, 17 * scale, 0, Math.PI * 2);
+    context.arc(x + 34 * scale, y, 12 * scale, 0, Math.PI * 2);
+    context.fill();
+  };
+  const draw = (time) => {
+    context.fillStyle = "#f7dfe6";
+    context.fillRect(0, 0, width, height);
+    context.fillStyle = "rgba(216,115,134,.12)";
+    for (let x = 0; x < width; x += 28) context.fillRect(x, 0, 1, height - 18);
+    drawCloud(34 - ((time / 85) % 470), 42, .55);
+    drawCloud(248 - ((time / 110) % 470), 77, .42);
+    pipes.forEach((pipe) => {
+      context.fillStyle = "#3a2434";
+      context.fillRect(pipe.x, 0, pipeWidth, pipe.top);
+      context.fillRect(pipe.x, pipe.top + gap, pipeWidth, height - 18 - pipe.top - gap);
+      context.fillStyle = "#d87386";
+      context.fillRect(pipe.x - 4, pipe.top - 7, pipeWidth + 8, 7);
+      context.fillRect(pipe.x - 4, pipe.top + gap, pipeWidth + 8, 7);
+    });
+    context.fillStyle = "#342432";
+    context.fillRect(0, height - 18, width, 18);
+    context.fillStyle = "#d87386";
+    for (let x = -8; x < width; x += 18) context.fillRect(x + ((time / 5) % 18), height - 18, 8, 2);
+    const idleY = height / 2 + Math.sin(time / 260) * 7;
+    const y = active ? bird.y : idleY;
+    context.fillStyle = "#d87386";
+    context.beginPath(); context.arc(bird.x, y, bird.radius, 0, Math.PI * 2); context.fill();
+    context.fillStyle = "#fffafd";
+    context.beginPath(); context.arc(bird.x + 4, y - 4, 4, 0, Math.PI * 2); context.fill();
+    context.fillStyle = "#2b2228";
+    context.beginPath(); context.arc(bird.x + 5, y - 4, 1.5, 0, Math.PI * 2); context.fill();
+    context.fillStyle = "#f0a45e";
+    context.fillRect(bird.x + 9, y - 1, 8, 4);
+    if (gameOver) {
+      context.fillStyle = "rgba(58,36,52,.78)";
+      context.fillRect(0, 0, width, height - 18);
+      context.fillStyle = "#fffafd";
+      context.font = "600 16px Space Grotesk, sans-serif";
+      context.textAlign = "center";
+      context.fillText("这一局先到这里", width / 2, height / 2 - 4);
+      context.fillStyle = "#f3b3ab";
+      context.font = "12px Space Grotesk, sans-serif";
+      context.fillText(`得分 ${String(score).padStart(2, "0")}`, width / 2, height / 2 + 20);
+    }
+  };
+  const update = (delta) => {
+    if (!active) return;
+    bird.velocity += .42 * delta;
+    bird.y += bird.velocity * delta;
+    if (bird.y - bird.radius < 0 || bird.y + bird.radius > height - 18) { finish(); return; }
+    pipes.forEach((pipe) => {
+      pipe.x -= 2.35 * delta;
+      if (!pipe.passed && pipe.x + pipeWidth < bird.x) { pipe.passed = true; score += 1; setScore(); }
+      const overlapsX = bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipeWidth;
+      const outsideGap = bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.top + gap;
+      if (overlapsX && outsideGap) finish();
+    });
+    pipes = pipes.filter((pipe) => pipe.x > -pipeWidth - 10);
+    if (!pipes.some((pipe) => pipe.x > width - 145)) spawnPipe();
+  };
+  const loop = (time) => {
+    if (document.body.classList.contains("is-loading")) {
+      const delta = lastTime ? Math.min(2, (time - lastTime) / 16.67) : 1;
+      lastTime = time;
+      update(delta);
+      draw(time);
+      animationFrame = window.requestAnimationFrame(loop);
+    } else {
+      window.cancelAnimationFrame(animationFrame);
+    }
+  };
+  canvas.addEventListener("pointerdown", (event) => { event.preventDefault(); flap(); });
+  startButton?.addEventListener("click", flap);
+  document.addEventListener("keydown", (event) => {
+    if (!document.body.classList.contains("is-loading")) return;
+    if (event.code === "Space" || event.key === "ArrowUp") { event.preventDefault(); flap(); }
+  });
+  setScore();
+  draw(0);
+  animationFrame = window.requestAnimationFrame(loop);
+}
+
+function initArchiveLoader() {
+  const loader = $("#archiveLoader");
+  if (!loader) return;
+  document.body.classList.add("is-loading");
+  const percent = $("#loaderPercent");
+  const progress = $("#loaderProgress");
+  const message = $("#loaderMessage");
+  const skip = $("#loaderSkip");
+  const criticalAssets = ["assets/memory-01.jpg", "assets/memory-02.jpg", "assets/chapters/01.jpg"];
+  let completed = 0;
+  let finished = false;
+  const startedAt = performance.now();
+  const updateProgress = () => {
+    const value = Math.round((completed / criticalAssets.length) * 100);
+    if (percent) percent.textContent = `${value}%`;
+    if (progress) progress.style.width = `${value}%`;
+    if (message) message.textContent = value >= 100 ? "回忆已经准备好" : `正在准备首屏照片 · ${completed} / ${criticalAssets.length}`;
+  };
+  const finish = (skipped = false) => {
+    if (finished) return;
+    finished = true;
+    const delay = skipped ? 80 : Math.max(0, 850 - (performance.now() - startedAt));
+    window.setTimeout(() => {
+      loader.classList.add("is-ready");
+      document.body.classList.remove("is-loading");
+      window.setTimeout(() => { loader.hidden = true; }, 500);
+    }, delay);
+  };
+  skip?.addEventListener("click", () => finish(true));
+  updateProgress();
+  Promise.all(criticalAssets.map((source) => preloadArchiveImage(source).finally(() => {
+    completed += 1;
+    updateProgress();
+  }))).then(() => finish());
+  window.setTimeout(() => {
+    if (message && !finished) message.textContent = "网络有点慢，也可以先进入回忆录";
+    finish();
+  }, 12000);
+  initBirdGame($("#birdGame"), $("#birdGameStart"), $("#birdGameScore"));
+}
+
 function bindImageFallback(image, source = image?.getAttribute("src")) {
   if (!image || image.dataset.assetFallbackBound === "true") return;
   const fallback = fallbackAssetPath(source);
@@ -330,16 +518,24 @@ function bindImageFallback(image, source = image?.getAttribute("src")) {
 }
 
 function installStaticImageFallbacks(root = document) {
-  $$('img:not(#bookPhoto)', root).forEach((image) => bindImageFallback(image));
+  $$('img:not(#bookPhoto)', root).forEach((image) => {
+    const source = image.getAttribute("src") || "";
+    const preferred = archiveImageCandidates(source)[0];
+    if (preferred && preferred !== source) {
+      image.src = preferred;
+      return;
+    }
+    bindImageFallback(image, source);
+  });
 }
 
 function setBookImage(image, source, title) {
   image.onerror = null;
   image.dataset.assetFallbackBound = "false";
   image.dataset.fallbackTried = "false";
-  image.src = source;
+  image.src = archiveImageCandidates(source)[0] || source;
   image.alt = title;
-  bindImageFallback(image, source);
+  bindImageFallback(image, image.src);
 }
 
 function renderMemoryPage(nextIndex = memoryIndex, direction = 1) {
@@ -1010,9 +1206,9 @@ function initLightbox() {
     image.onerror = null;
     image.dataset.assetFallbackBound = "false";
     image.dataset.fallbackTried = "false";
-    image.src = trigger.dataset.image;
+    image.src = archiveImageCandidates(trigger.dataset.image)[0] || trigger.dataset.image;
     image.alt = trigger.querySelector("img")?.alt || "回忆照片";
-    bindImageFallback(image, trigger.dataset.image);
+    bindImageFallback(image, image.src);
     caption.textContent = trigger.dataset.caption || "";
     lightbox.hidden = false;
     document.body.classList.add("is-lightbox-open");
@@ -1034,6 +1230,7 @@ function initReveal() {
   revealItems.forEach((item) => observer.observe(item));
 }
 
+initArchiveLoader();
 installStaticImageFallbacks();
 updateTogetherCounter();
 window.setInterval(updateTogetherCounter, 60000);

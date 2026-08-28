@@ -11,9 +11,31 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="styles-premium.css" />
+    <link rel="stylesheet" href="styles-premium.css?v=20260828-3" />
   </head>
-  <body>
+  <body class="is-loading">
+    <div class="archive-loader" id="archiveLoader" role="status" aria-live="polite">
+      <div class="archive-loader-frame">
+        <div class="loader-kicker"><span>甜甜 × 炜炜</span><span>MEMORY ARCHIVE</span></div>
+        <div class="loader-heading">
+          <div>
+            <p class="eyebrow">正在打开你们的时间</p>
+            <h1>先玩一会儿，<br /><em>回忆马上到。</em></h1>
+          </div>
+          <strong id="loaderPercent">0%</strong>
+        </div>
+        <div class="loader-progress" aria-hidden="true"><span id="loaderProgress"></span></div>
+        <div class="loader-game-shell">
+          <div class="loader-game-topline"><span>WAITING GAME</span><span id="birdGameScore">00</span></div>
+          <canvas id="birdGame" width="420" height="240" aria-label="加载时玩小鸟游戏"></canvas>
+          <button class="loader-game-start" id="birdGameStart" type="button">开始游戏</button>
+        </div>
+        <div class="loader-footer">
+          <span id="loaderMessage">首屏照片准备中</span>
+          <button class="loader-skip" id="loaderSkip" type="button">先进入</button>
+        </div>
+      </div>
+    </div>
     <div class="public-lock" id="publicLock" hidden>
       <div class="public-lock-panel">
         <p class="eyebrow">甜甜 × 炜炜</p>
@@ -391,6 +413,6 @@
     <script src="supabase-config.js"></script>
     <script src="public-config.js"></script>
     <script src="memories-data.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=20260828-3"></script>
   </body>
 </html>
