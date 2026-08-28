@@ -303,6 +303,19 @@ function refreshMemoryBook() {
   renderMemoryPage(nextIndex, 0);
 }
 
+function setBookImage(image, source, title) {
+  image.dataset.fallbackTried = "false";
+  image.onerror = () => {
+    if (image.dataset.fallbackTried === "true") return;
+    const fallback = String(source || "").replace(/^assets\/chapters\//, "");
+    if (!fallback || fallback === source) return;
+    image.dataset.fallbackTried = "true";
+    image.src = fallback;
+  };
+  image.src = source;
+  image.alt = title;
+}
+
 function renderMemoryPage(nextIndex = memoryIndex, direction = 1) {
   const pages = getBookPages();
   if (!pages.length) return;
@@ -324,8 +337,7 @@ function renderMemoryPage(nextIndex = memoryIndex, direction = 1) {
     $("#bookPhotoIndex").hidden = isContinuation;
     $(".book-copy").hidden = isContinuation;
     if (!isContinuation) {
-      $("#bookPhoto").src = page.image;
-      $("#bookPhoto").alt = page.title;
+      setBookImage($("#bookPhoto"), page.image, page.title);
       $("#bookPhotoIndex").textContent = String(memoryIndex + 1).padStart(2, "0");
     }
     $("#bookProgress").textContent = `${String(memoryIndex + 1).padStart(2, "0")} / ${String(pages.length).padStart(2, "0")}`;
