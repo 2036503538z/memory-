@@ -339,7 +339,7 @@ function initBirdGame(canvas, startButton, scoreElement) {
   if (!context) { if (startButton) startButton.hidden = true; return; }
   const width = canvas.width;
   const height = canvas.height;
-  const gap = 92;
+  const gap = 104;
   const pipeWidth = 34;
   const bird = { x: 88, y: height / 2, velocity: 0, radius: 11 };
   let pipes = [];
@@ -348,6 +348,7 @@ function initBirdGame(canvas, startButton, scoreElement) {
   let score = 0;
   let animationFrame = 0;
   let lastTime = 0;
+  let lastFlap = 0;
 
   const setScore = () => { if (scoreElement) scoreElement.textContent = String(score).padStart(2, "0"); };
   const reset = () => {
@@ -367,7 +368,9 @@ function initBirdGame(canvas, startButton, scoreElement) {
   };
   const flap = () => {
     if (!active || gameOver) { reset(); return; }
-    bird.velocity = -6.5;
+    if (performance.now() - lastFlap < 90) return;
+    lastFlap = performance.now();
+    bird.velocity = -5.8;
   };
   const spawnPipe = () => {
     const top = 26 + Math.random() * (height - gap - 72);
@@ -424,11 +427,11 @@ function initBirdGame(canvas, startButton, scoreElement) {
   };
   const update = (delta) => {
     if (!active) return;
-    bird.velocity += .42 * delta;
+    bird.velocity += .28 * delta;
     bird.y += bird.velocity * delta;
     if (bird.y - bird.radius < 0 || bird.y + bird.radius > height - 18) { finish(); return; }
     pipes.forEach((pipe) => {
-      pipe.x -= 2.35 * delta;
+      pipe.x -= 1.95 * delta;
       if (!pipe.passed && pipe.x + pipeWidth < bird.x) { pipe.passed = true; score += 1; setScore(); }
       const overlapsX = bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipeWidth;
       const outsideGap = bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.top + gap;
@@ -449,6 +452,7 @@ function initBirdGame(canvas, startButton, scoreElement) {
     }
   };
   canvas.addEventListener("pointerdown", (event) => { event.preventDefault(); flap(); });
+  canvas.addEventListener("dblclick", (event) => event.preventDefault());
   startButton?.addEventListener("click", flap);
   document.addEventListener("keydown", (event) => {
     if (!document.body.classList.contains("is-loading")) return;
@@ -467,7 +471,14 @@ function initArchiveLoader() {
   const progress = $("#loaderProgress");
   const message = $("#loaderMessage");
   const skip = $("#loaderSkip");
-  const criticalAssets = ["assets/memory-01.jpg", "assets/memory-02.jpg", "assets/chapters/01.jpg"];
+  const criticalAssets = [...new Set([
+    "assets/memory-01.jpg",
+    "assets/memory-02.jpg",
+    "assets/memory-03.jpg",
+    "assets/memory-04.jpg",
+    "assets/memory-05.jpg",
+    ...memoryPages.map((page) => page.image)
+  ])];
   let completed = 0;
   let finished = false;
   const startedAt = performance.now();
@@ -475,7 +486,7 @@ function initArchiveLoader() {
     const value = Math.round((completed / criticalAssets.length) * 100);
     if (percent) percent.textContent = `${value}%`;
     if (progress) progress.style.width = `${value}%`;
-    if (message) message.textContent = value >= 100 ? "回忆已经准备好" : `正在准备首屏照片 · ${completed} / ${criticalAssets.length}`;
+    if (message) message.textContent = value >= 100 ? "全部回忆已经下载好" : `正在下载全部回忆 · ${completed} / ${criticalAssets.length}`;
   };
   const finish = (skipped = false) => {
     if (finished) return;
@@ -493,10 +504,6 @@ function initArchiveLoader() {
     completed += 1;
     updateProgress();
   }))).then(() => finish());
-  window.setTimeout(() => {
-    if (message && !finished) message.textContent = "网络有点慢，也可以先进入回忆录";
-    finish();
-  }, 12000);
   initBirdGame($("#birdGame"), $("#birdGameStart"), $("#birdGameScore"));
 }
 

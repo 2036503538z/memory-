@@ -38,7 +38,7 @@
 .loader-progress span { display: block; width: 0; height: 100%; background: var(--coral); transition: width .25s ease; }
 .loader-game-shell { position: relative; padding: 13px 15px 15px; border: 1px solid rgba(255,250,253,.2); background: #342432; }
 .loader-game-topline { margin-bottom: 10px; }
-#birdGame { display: block; width: 100%; height: auto; aspect-ratio: 420 / 240; background: #f7dfe6; cursor: pointer; image-rendering: auto; }
+#birdGame { display: block; width: 100%; height: auto; aspect-ratio: 420 / 240; background: #f7dfe6; cursor: pointer; image-rendering: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
 .loader-game-start { position: absolute; top: 50%; left: 50%; padding: 10px 18px; border: 1px solid var(--cobalt); background: var(--cobalt); color: var(--white); cursor: pointer; font-size: 12px; transform: translate(-50%, -32%); }
 .loader-game-start[hidden] { display: none; }
 .loader-footer { margin-top: 16px; }
