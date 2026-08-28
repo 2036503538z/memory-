@@ -305,18 +305,25 @@ function refreshMemoryBook() {
   renderMemoryPage(nextIndex, 0);
 }
 
-function fallbackAssetPath(source) {
-  const value = String(source || "");
-  if (value.startsWith("assets/chapters/")) return value.replace(/^assets\/chapters\//, "");
-  if (value.startsWith("assets/")) return value.replace(/^assets\//, "");
-  return "";
-}
-
 function archiveImageCandidates(source) {
-  const value = String(source || "");
-  const fallback = fallbackAssetPath(value);
-  const candidates = [value, fallback].filter((candidate, index, list) => candidate && list.indexOf(candidate) === index);
-  return location.hostname.endsWith("github.io") ? candidates.reverse() : candidates;
+  const value = String(source || "").trim();
+  if (!value || /^(?:data:|blob:|https?:|\/\/|\/)/i.test(value)) return value ? [value] : [];
+
+  const normalized = value.replace(/^\.\//, "");
+  const assetMatch = normalized.match(/^assets\/(chapters\/)?([^/]+)\.(jpg|jpeg|png|webp)$/i);
+  const rootMatch = normalized.match(/^((?:\d{2})|memory-\d+)\.(jpg|jpeg|png|webp)$/i);
+  if (!assetMatch && !rootMatch) return [value];
+
+  const filename = assetMatch ? assetMatch[2] : rootMatch[1];
+  const extension = (assetMatch ? assetMatch[3] : rootMatch[2]).toLowerCase();
+  const isChapter = assetMatch ? Boolean(assetMatch[1]) : /^\d{2}$/.test(filename);
+  const optimized = `${filename}.webp`;
+  const rootOriginal = extension === "webp" ? "" : `${filename}.${extension}`;
+  const assetsOriginal = `assets/${isChapter ? "chapters/" : ""}${filename}.${extension}`;
+  const ordered = location.hostname.endsWith("github.io")
+    ? [optimized, rootOriginal, assetsOriginal]
+    : [assetsOriginal, optimized, rootOriginal];
+  return ordered.filter((candidate, index, list) => candidate && list.indexOf(candidate) === index);
 }
 
 function preloadArchiveImage(source) {
@@ -508,41 +515,44 @@ function initArchiveLoader() {
 }
 
 function bindImageFallback(image, source = image?.getAttribute("src")) {
-  if (!image || image.dataset.assetFallbackBound === "true") return;
-  const fallback = fallbackAssetPath(source);
-  if (!fallback || fallback === source) return;
+  if (!image) return;
+  const candidates = archiveImageCandidates(source);
+  if (!candidates.length) return;
+  let currentIndex = candidates.indexOf(image.getAttribute("src"));
+  if (currentIndex < 0) currentIndex = 0;
   image.dataset.assetFallbackBound = "true";
+  image.dataset.assetFallbackIndex = String(currentIndex);
   image.onerror = () => {
-    if (image.dataset.fallbackTried === "true") return;
-    image.dataset.fallbackTried = "true";
-    image.src = fallback;
+    const nextIndex = Number(image.dataset.assetFallbackIndex || currentIndex) + 1;
+    if (nextIndex >= candidates.length) return;
+    image.dataset.assetFallbackIndex = String(nextIndex);
+    image.src = candidates[nextIndex];
   };
   // The browser may have finished the failed request before app.js ran.
-  if (image.complete && image.naturalWidth === 0) {
-    image.dataset.fallbackTried = "true";
-    image.src = fallback;
-  }
+  if (image.complete && image.naturalWidth === 0) image.onerror();
+}
+
+function setArchiveImage(image, source) {
+  if (!image) return;
+  const candidates = archiveImageCandidates(source);
+  image.onerror = null;
+  image.dataset.archiveSource = String(source || "");
+  image.dataset.assetFallbackBound = "false";
+  image.dataset.assetFallbackIndex = "0";
+  image.src = candidates[0] || source || "";
+  bindImageFallback(image, source);
 }
 
 function installStaticImageFallbacks(root = document) {
   $$('img:not(#bookPhoto)', root).forEach((image) => {
-    const source = image.getAttribute("src") || "";
-    const preferred = archiveImageCandidates(source)[0];
-    if (preferred && preferred !== source) {
-      image.src = preferred;
-      return;
-    }
-    bindImageFallback(image, source);
+    const source = image.dataset.archiveSource || image.getAttribute("src") || "";
+    setArchiveImage(image, source);
   });
 }
 
 function setBookImage(image, source, title) {
-  image.onerror = null;
-  image.dataset.assetFallbackBound = "false";
-  image.dataset.fallbackTried = "false";
-  image.src = archiveImageCandidates(source)[0] || source;
+  setArchiveImage(image, source);
   image.alt = title;
-  bindImageFallback(image, image.src);
 }
 
 function renderMemoryPage(nextIndex = memoryIndex, direction = 1) {
@@ -1210,12 +1220,8 @@ function initLightbox() {
   const caption = $("#lightboxCaption");
   const close = () => { lightbox.hidden = true; document.body.classList.remove("is-lightbox-open"); image.removeAttribute("src"); };
   $$(".photo-trigger").forEach((trigger) => trigger.addEventListener("click", () => {
-    image.onerror = null;
-    image.dataset.assetFallbackBound = "false";
-    image.dataset.fallbackTried = "false";
-    image.src = archiveImageCandidates(trigger.dataset.image)[0] || trigger.dataset.image;
+    setArchiveImage(image, trigger.dataset.image);
     image.alt = trigger.querySelector("img")?.alt || "回忆照片";
-    bindImageFallback(image, image.src);
     caption.textContent = trigger.dataset.caption || "";
     lightbox.hidden = false;
     document.body.classList.add("is-lightbox-open");
