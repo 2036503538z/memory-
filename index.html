@@ -6,14 +6,25 @@
     <meta name="theme-color" content="#f3f0e8" />
     <meta name="description" content="甜甜与炜炜的私人回忆录：我们把时间留在这里。" />
     <title>甜甜 × 炜炜 / 我们把时间留在这里</title>
-    <link rel="icon" href="assets/memory-01.jpg" type="image/jpeg" />
+    <link rel="icon" href="memory-01.webp" type="image/webp" />
+    <link rel="preload" as="image" href="memory-01.webp" type="image/webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="memory-02.webp" type="image/webp" fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="styles-premium.css?v=20260828-5" />
+    <link rel="stylesheet" href="styles-premium.css?v=20260829-6" />
   </head>
   <body class="is-loading">
+    <script>
+      window.__archiveLoadWatchdog = window.setTimeout(function () {
+        var loader = document.getElementById("archiveLoader");
+        if (!loader) return;
+        loader.classList.add("is-ready");
+        document.body.classList.remove("is-loading");
+        window.setTimeout(function () { loader.hidden = true; }, 500);
+      }, 15000);
+    </script>
     <div class="archive-loader" id="archiveLoader" role="status" aria-live="polite">
       <div class="archive-loader-frame">
         <div class="loader-kicker"><span>甜甜 × 炜炜</span><span>MEMORY ARCHIVE</span></div>
@@ -106,11 +117,11 @@
           </div>
           <div class="hero-collage" aria-label="回忆照片预览">
             <figure class="hero-photo hero-photo-main photo-trigger" data-image="assets/memory-01.jpg" data-caption="我们把手比成了一个小小的心。">
-              <img src="assets/memory-01.jpg" alt="两只手在夕阳下组成心形" />
+              <img src="memory-01.webp" data-archive-source="assets/memory-01.jpg" alt="两只手在夕阳下组成心形" fetchpriority="high" />
               <figcaption>我们的第一件小事</figcaption>
             </figure>
             <figure class="hero-photo hero-photo-side photo-trigger" data-image="assets/memory-02.jpg" data-caption="出发这件事，本身就很值得纪念。">
-              <img src="assets/memory-02.jpg" alt="一起走在旅途中的风景" />
+              <img src="memory-02.webp" data-archive-source="assets/memory-02.jpg" alt="一起走在旅途中的风景" fetchpriority="high" />
               <figcaption>一起走在路上</figcaption>
             </figure>
             <div class="hero-stamp"><span>03</span><small>years<br />of us</small></div>
@@ -130,7 +141,7 @@
             <div class="book-photo-column">
               <div class="book-photo-index" id="bookPhotoIndex">01</div>
               <div class="book-photo-wrap">
-                <img id="bookPhoto" src="assets/chapters/01.jpg" alt="" />
+                <img id="bookPhoto" src="01.webp" data-archive-source="assets/chapters/01.jpg" alt="" fetchpriority="high" />
                 <div class="continuation-art" id="continuationArt" hidden aria-hidden="true">
                   <span>未完</span>
                   <strong>待续</strong>
@@ -162,7 +173,7 @@
             <article class="memory memory--hero reveal">
               <div class="memory-meta"><span>CHAPTER 01</span></div>
               <div class="memory-media photo-trigger" data-image="assets/memory-03.jpg" data-caption="第一次见面之后，城市还是原来的城市，我们已经不是了。">
-                <img src="assets/memory-03.jpg" alt="黄昏时的城市与天空" loading="lazy" />
+                <img src="memory-03.webp" data-archive-source="assets/memory-03.jpg" alt="黄昏时的城市与天空" loading="lazy" />
               </div>
               <div class="memory-copy">
                 <h3>第一次见面之后</h3>
@@ -174,7 +185,7 @@
             <article class="memory memory--split reveal">
               <div class="memory-meta"><span>CHAPTER 02</span></div>
               <div class="memory-media photo-trigger" data-image="assets/memory-04.jpg" data-caption="旅行不是去哪里，是和谁一起把路走完。">
-                <img src="assets/memory-04.jpg" alt="旅途中靠近的两个人" loading="lazy" />
+                <img src="memory-04.webp" data-archive-source="assets/memory-04.jpg" alt="旅途中靠近的两个人" loading="lazy" />
               </div>
               <div class="memory-copy">
                 <h3>第一次一起出发</h3>
@@ -192,7 +203,7 @@
                 <span class="memory-caption">THE UNPLANNED ONES</span>
               </div>
               <div class="memory-media photo-trigger" data-image="assets/memory-05.jpg" data-caption="最想重复的不是目的地，是和你一起浪费时间。">
-                <img src="assets/memory-05.jpg" alt="窗边的植物和温柔光线" loading="lazy" />
+                <img src="memory-05.webp" data-archive-source="assets/memory-05.jpg" alt="窗边的植物和温柔光线" loading="lazy" />
               </div>
             </article>
 
@@ -214,7 +225,7 @@
             <p>把你们最想留下的那段视频放在这里。它会是回忆录的中场，也是进入日记之前的一次停顿。</p>
           </div>
           <div class="video-frame reveal">
-            <video id="memoryVideo" controls preload="metadata" poster="assets/memory-01.jpg" aria-label="我们的回忆视频">
+            <video id="memoryVideo" controls preload="metadata" poster="memory-01.webp" aria-label="我们的回忆视频">
               <p>当前还没有添加视频。</p>
             </video>
             <div class="video-empty" id="videoEmpty">
@@ -409,10 +420,10 @@
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
-    <script src="public-config.js"></script>
-    <script src="memories-data.js"></script>
-    <script src="app.js?v=20260828-5"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="supabase-config.js"></script>
+    <script defer src="public-config.js"></script>
+    <script defer src="memories-data.js"></script>
+    <script defer src="app.js?v=20260829-7"></script>
   </body>
 </html>

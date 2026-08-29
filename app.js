@@ -320,9 +320,7 @@ function archiveImageCandidates(source) {
   const optimized = `${filename}.webp`;
   const rootOriginal = extension === "webp" ? "" : `${filename}.${extension}`;
   const assetsOriginal = `assets/${isChapter ? "chapters/" : ""}${filename}.${extension}`;
-  const ordered = location.hostname.endsWith("github.io")
-    ? [optimized, rootOriginal, assetsOriginal]
-    : [assetsOriginal, optimized, rootOriginal];
+  const ordered = [optimized, rootOriginal, assetsOriginal];
   return ordered.filter((candidate, index, list) => candidate && list.indexOf(candidate) === index);
 }
 
@@ -478,7 +476,7 @@ function initArchiveLoader() {
   const progress = $("#loaderProgress");
   const message = $("#loaderMessage");
   const skip = $("#loaderSkip");
-  const criticalAssets = [...new Set([
+  const allAssets = [...new Set([
     "assets/memory-01.jpg",
     "assets/memory-02.jpg",
     "assets/memory-03.jpg",
@@ -486,19 +484,54 @@ function initArchiveLoader() {
     "assets/memory-05.jpg",
     ...memoryPages.map((page) => page.image)
   ])];
+  const criticalAssets = [...new Set([
+    "assets/memory-01.jpg",
+    "assets/memory-02.jpg",
+    memoryPages[0]?.image
+  ].filter(Boolean))];
+  const backgroundAssets = allAssets.filter((source) => !criticalAssets.includes(source));
   let completed = 0;
   let finished = false;
+  let backgroundStarted = false;
   const startedAt = performance.now();
   const updateProgress = () => {
-    const value = Math.round((completed / criticalAssets.length) * 100);
+    const value = allAssets.length ? Math.round((completed / allAssets.length) * 100) : 100;
     if (percent) percent.textContent = `${value}%`;
     if (progress) progress.style.width = `${value}%`;
-    if (message) message.textContent = value >= 100 ? "全部回忆已经下载好" : `正在下载全部回忆 · ${completed} / ${criticalAssets.length}`;
+    if (message) {
+      message.textContent = value >= 100
+        ? "全部回忆已经下载好"
+        : (finished ? `其余回忆正在后台准备 · ${completed} / ${allAssets.length}` : `首屏照片准备中 · ${completed} / ${allAssets.length}`);
+    }
+  };
+  const markComplete = () => {
+    completed += 1;
+    updateProgress();
+  };
+  const preloadBatch = async (sources, concurrency = 4) => {
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < sources.length) {
+        const source = sources[cursor++];
+        await preloadArchiveImage(source).finally(markComplete);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, sources.length) }, worker));
+  };
+  const startBackground = () => {
+    if (backgroundStarted) return;
+    backgroundStarted = true;
+    preloadBatch(backgroundAssets).catch(() => {});
   };
   const finish = (skipped = false) => {
     if (finished) return;
     finished = true;
-    const delay = skipped ? 80 : Math.max(0, 850 - (performance.now() - startedAt));
+    if (window.__archiveLoadWatchdog) {
+      window.clearTimeout(window.__archiveLoadWatchdog);
+      window.__archiveLoadWatchdog = null;
+    }
+    startBackground();
+    const delay = skipped ? 80 : Math.max(0, 220 - (performance.now() - startedAt));
     window.setTimeout(() => {
       loader.classList.add("is-ready");
       document.body.classList.remove("is-loading");
@@ -507,10 +540,10 @@ function initArchiveLoader() {
   };
   skip?.addEventListener("click", () => finish(true));
   updateProgress();
-  Promise.all(criticalAssets.map((source) => preloadArchiveImage(source).finally(() => {
-    completed += 1;
-    updateProgress();
-  }))).then(() => finish());
+  Promise.race([
+    preloadBatch(criticalAssets, 2),
+    new Promise((resolve) => window.setTimeout(resolve, 1200))
+  ]).then(() => finish());
   initBirdGame($("#birdGame"), $("#birdGameStart"), $("#birdGameScore"));
 }
 
