@@ -833,23 +833,29 @@ async function initCloud() {
   if (cloudSession) {
     try { await loadCloudEntries(); await loadCloudVoices(); } catch (error) { setFormStatus(`同步读取失败：${error.message}`, true); }
   }
+  const subscribeCloudRealtime = () => {
+    if (!cloudSession || !supabaseClient || supabaseClient.__archiveRealtime) return;
+    supabaseClient.__archiveRealtime = true;
+    supabaseClient.channel("shared-space-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "entries" }, async () => {
+        if (!cloudSession) return;
+        try { await loadCloudEntries(); } catch (error) { console.error(error); }
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "voices" }, async () => {
+        if (!cloudSession) return;
+        try { await loadCloudVoices(); } catch (error) { console.error(error); }
+      })
+      .subscribe();
+  };
+  subscribeCloudRealtime();
   supabaseClient.auth.onAuthStateChange(async (_event, session) => {
     cloudSession = session;
     updateCloudButton();
     if (!session) return;
     closeAuth();
     try { await loadCloudEntries(); await loadCloudVoices(); } catch (error) { setFormStatus(`同步读取失败：${error.message}`, true); }
+    subscribeCloudRealtime();
   });
-  supabaseClient.channel("shared-space-realtime")
-    .on("postgres_changes", { event: "*", schema: "public", table: "entries" }, async () => {
-      if (!cloudSession) return;
-      try { await loadCloudEntries(); } catch (error) { console.error(error); }
-    })
-    .on("postgres_changes", { event: "*", schema: "public", table: "voices" }, async () => {
-      if (!cloudSession) return;
-      try { await loadCloudVoices(); } catch (error) { console.error(error); }
-    })
-    .subscribe();
 }
 
 function initPublicAuth() {
@@ -1287,5 +1293,5 @@ initVideo();
 initLightbox();
 initScrollLinks();
 initAuth();
-initCloud();
+window.setTimeout(() => { initCloud().catch((error) => console.error("同步空间暂时不可用", error)); }, 800);
 initReveal();
