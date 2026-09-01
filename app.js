@@ -5,7 +5,8 @@ const anniversaryMonth = 1;
 const anniversaryDay = 17;
 const photoBucket = "memory-photos";
 const voiceBucket = "memory-voices";
-const ARCHIVE_ASSET_VERSION = "20260829-9";
+const ARCHIVE_ASSET_VERSION = "20260901-1";
+const ARCHIVE_LOADER_DURATION = 20000;
 const memoryPages = Array.isArray(window.MEMORY_PAGES) ? window.MEMORY_PAGES : [];
 const cloudConfig = window.SUPABASE_CONFIG || {};
 const cloudReady = Boolean(window.supabase && cloudConfig.url && cloudConfig.anonKey);
@@ -325,17 +326,27 @@ function archiveImageCandidates(source) {
   return ordered.filter((candidate, index, list) => candidate && list.indexOf(candidate) === index);
 }
 
-function preloadArchiveImage(source) {
+function preloadArchiveImage(source, { timeout = 12000 } = {}) {
   const candidates = archiveImageCandidates(source);
   return new Promise((resolve) => {
+    if (!candidates.length) { resolve({ ok: false, src: "" }); return; }
     const probe = new Image();
     let index = 0;
-    const tryNext = () => {
-      if (index >= candidates.length) { resolve(false); return; }
-      probe.onload = () => resolve(true);
-      probe.onerror = tryNext;
-      probe.src = candidates[index++];
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      resolve(result);
     };
+    const tryNext = () => {
+      if (index >= candidates.length) { finish({ ok: false, src: "" }); return; }
+      const candidate = candidates[index++];
+      probe.onload = () => finish({ ok: true, src: candidate });
+      probe.onerror = tryNext;
+      probe.src = candidate;
+    };
+    const timer = window.setTimeout(() => finish({ ok: false, src: "" }), timeout);
     tryNext();
   });
 }
@@ -345,9 +356,9 @@ function initBirdGame(canvas, startButton, scoreElement) {
   if (!context) { if (startButton) startButton.hidden = true; return; }
   const width = canvas.width;
   const height = canvas.height;
-  const gap = 104;
-  const pipeWidth = 34;
-  const bird = { x: 88, y: height / 2, velocity: 0, radius: 11 };
+  const gap = 150;
+  const pipeWidth = 32;
+  const bird = { x: 88, y: height / 2, velocity: 0, radius: 9 };
   let pipes = [];
   let active = false;
   let gameOver = false;
@@ -355,14 +366,18 @@ function initBirdGame(canvas, startButton, scoreElement) {
   let animationFrame = 0;
   let lastTime = 0;
   let lastFlap = 0;
+  let resetTimer = 0;
+  let roundStartedAt = 0;
 
   const setScore = () => { if (scoreElement) scoreElement.textContent = String(score).padStart(2, "0"); };
   const reset = () => {
+    window.clearTimeout(resetTimer);
     bird.y = height / 2;
     bird.velocity = 0;
-    pipes = [{ x: width + 30, top: 42 + Math.random() * 52, passed: false }];
+    pipes = [{ x: width + 100, top: 24 + Math.random() * (height - gap - 64), passed: false }];
     active = true;
     gameOver = false;
+    roundStartedAt = performance.now();
     score = 0;
     setScore();
     if (startButton) startButton.hidden = true;
@@ -370,17 +385,17 @@ function initBirdGame(canvas, startButton, scoreElement) {
   const finish = () => {
     active = false;
     gameOver = true;
-    if (startButton) { startButton.hidden = false; startButton.textContent = "再来一局"; }
+    resetTimer = window.setTimeout(reset, 600);
   };
   const flap = () => {
     if (!active || gameOver) { reset(); return; }
-    if (performance.now() - lastFlap < 90) return;
+    if (performance.now() - lastFlap < 120) return;
     lastFlap = performance.now();
-    bird.velocity = -5.8;
+    bird.velocity = -2.6;
   };
   const spawnPipe = () => {
-    const top = 26 + Math.random() * (height - gap - 72);
-    pipes.push({ x: width + 18, top, passed: false });
+    const top = 24 + Math.random() * (height - gap - 68);
+    pipes.push({ x: width + 60, top, passed: false });
   };
   const drawCloud = (x, y, scale) => {
     context.fillStyle = "rgba(255,250,253,.7)";
@@ -420,31 +435,37 @@ function initBirdGame(canvas, startButton, scoreElement) {
     context.fillStyle = "#f0a45e";
     context.fillRect(bird.x + 9, y - 1, 8, 4);
     if (gameOver) {
-      context.fillStyle = "rgba(58,36,52,.78)";
+      context.fillStyle = "rgba(58,36,52,.68)";
       context.fillRect(0, 0, width, height - 18);
       context.fillStyle = "#fffafd";
       context.font = "600 16px Space Grotesk, sans-serif";
       context.textAlign = "center";
-      context.fillText("这一局先到这里", width / 2, height / 2 - 4);
+      context.fillText("继续飞", width / 2, height / 2 - 4);
       context.fillStyle = "#f3b3ab";
       context.font = "12px Space Grotesk, sans-serif";
-      context.fillText(`得分 ${String(score).padStart(2, "0")}`, width / 2, height / 2 + 20);
+      context.fillText("马上自动开始", width / 2, height / 2 + 20);
     }
   };
   const update = (delta) => {
     if (!active) return;
-    bird.velocity += .28 * delta;
+    bird.velocity += .055 * delta;
     bird.y += bird.velocity * delta;
-    if (bird.y - bird.radius < 0 || bird.y + bird.radius > height - 18) { finish(); return; }
+    const isStarting = performance.now() - roundStartedAt < 1600;
+    if (bird.y - bird.radius < 0 || bird.y + bird.radius > height - 18) {
+      if (isStarting) {
+        bird.y = Math.max(bird.radius + 4, Math.min(height - 22 - bird.radius, bird.y));
+        bird.velocity = 0;
+      } else { finish(); return; }
+    }
     pipes.forEach((pipe) => {
-      pipe.x -= 1.95 * delta;
+      pipe.x -= .92 * delta;
       if (!pipe.passed && pipe.x + pipeWidth < bird.x) { pipe.passed = true; score += 1; setScore(); }
       const overlapsX = bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipeWidth;
       const outsideGap = bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.top + gap;
-      if (overlapsX && outsideGap) finish();
+      if (!isStarting && overlapsX && outsideGap) finish();
     });
     pipes = pipes.filter((pipe) => pipe.x > -pipeWidth - 10);
-    if (!pipes.some((pipe) => pipe.x > width - 145)) spawnPipe();
+    if (!pipes.some((pipe) => pipe.x > width - 205)) spawnPipe();
   };
   const loop = (time) => {
     if (document.body.classList.contains("is-loading")) {
@@ -457,8 +478,11 @@ function initBirdGame(canvas, startButton, scoreElement) {
       window.cancelAnimationFrame(animationFrame);
     }
   };
-  canvas.addEventListener("pointerdown", (event) => { event.preventDefault(); flap(); });
-  canvas.addEventListener("dblclick", (event) => event.preventDefault());
+  canvas.addEventListener("pointerdown", (event) => { event.preventDefault(); flap(); }, { passive: false });
+  canvas.addEventListener("touchend", (event) => event.preventDefault(), { passive: false });
+  canvas.addEventListener("dblclick", (event) => event.preventDefault(), { passive: false });
+  canvas.addEventListener("gesturestart", (event) => event.preventDefault(), { passive: false });
+  canvas.addEventListener("contextmenu", (event) => event.preventDefault());
   startButton?.addEventListener("click", flap);
   document.addEventListener("keydown", (event) => {
     if (!document.body.classList.contains("is-loading")) return;
@@ -476,7 +500,7 @@ function initArchiveLoader() {
   const percent = $("#loaderPercent");
   const progress = $("#loaderProgress");
   const message = $("#loaderMessage");
-  const skip = $("#loaderSkip");
+  const countdown = $("#loaderCountdown");
   const allAssets = [...new Set([
     "assets/memory-01.jpg",
     "assets/memory-02.jpg",
@@ -485,31 +509,24 @@ function initArchiveLoader() {
     "assets/memory-05.jpg",
     ...memoryPages.map((page) => page.image)
   ])];
-  const criticalAssets = [...new Set([
-    "assets/memory-01.jpg",
-    "assets/memory-02.jpg",
-    memoryPages[0]?.image
-  ].filter(Boolean))];
-  const backgroundAssets = allAssets.filter((source) => !criticalAssets.includes(source));
   let completed = 0;
   let finished = false;
-  let backgroundStarted = false;
   const startedAt = performance.now();
   const updateProgress = () => {
     const value = allAssets.length ? Math.round((completed / allAssets.length) * 100) : 100;
     if (percent) percent.textContent = `${value}%`;
     if (progress) progress.style.width = `${value}%`;
-    if (message) {
-      message.textContent = value >= 100
-        ? "全部回忆已经下载好"
-        : (finished ? `其余回忆正在后台准备 · ${completed} / ${allAssets.length}` : `首屏照片准备中 · ${completed} / ${allAssets.length}`);
+    if (message) message.textContent = value >= 100 ? "回忆已经准备好" : `正在准备照片 · ${completed} / ${allAssets.length}`;
+    if (countdown) {
+      const remaining = Math.max(0, Math.ceil((ARCHIVE_LOADER_DURATION - (performance.now() - startedAt)) / 1000));
+      countdown.textContent = String(remaining).padStart(2, "0");
     }
   };
   const markComplete = () => {
     completed += 1;
     updateProgress();
   };
-  const preloadBatch = async (sources, concurrency = 4) => {
+  const preloadBatch = async (sources, concurrency = 2) => {
     let cursor = 0;
     const worker = async () => {
       while (cursor < sources.length) {
@@ -519,40 +536,38 @@ function initArchiveLoader() {
     };
     await Promise.all(Array.from({ length: Math.min(concurrency, sources.length) }, worker));
   };
-  const startBackground = () => {
-    if (backgroundStarted) return;
-    backgroundStarted = true;
-    preloadBatch(backgroundAssets).catch(() => {});
-  };
-  const finish = (skipped = false) => {
+  const finish = () => {
     if (finished) return;
     finished = true;
     if (window.__archiveLoadWatchdog) {
       window.clearTimeout(window.__archiveLoadWatchdog);
       window.__archiveLoadWatchdog = null;
     }
-    startBackground();
-    const delay = skipped ? 80 : Math.max(0, 220 - (performance.now() - startedAt));
-    window.setTimeout(() => {
-      loader.classList.add("is-ready");
-      document.body.classList.remove("is-loading");
-      window.setTimeout(() => { loader.hidden = true; }, 500);
-    }, delay);
+    loader.classList.add("is-ready");
+    document.body.classList.remove("is-loading");
+    window.setTimeout(() => { loader.hidden = true; }, 500);
   };
-  skip?.addEventListener("click", () => finish(true));
   updateProgress();
-  Promise.race([
-    preloadBatch(criticalAssets, 2),
-    new Promise((resolve) => window.setTimeout(resolve, 1200))
-  ]).then(() => finish());
   initBirdGame($("#birdGame"), $("#birdGameStart"), $("#birdGameScore"));
+  preloadBatch(allAssets).catch(() => {});
+  const countdownTicker = window.setInterval(updateProgress, 250);
+  window.setTimeout(() => {
+    window.clearInterval(countdownTicker);
+    finish();
+  }, ARCHIVE_LOADER_DURATION);
 }
 
-function bindImageFallback(image, source = image?.getAttribute("src")) {
+function initArchiveImageCache() {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.register(`service-worker.js?v=${ARCHIVE_ASSET_VERSION}`).catch(() => {});
+}
+
+function bindImageFallback(image, source = image?.getAttribute("src"), activeSource = image?.getAttribute("src")) {
   if (!image) return;
   const candidates = archiveImageCandidates(source);
   if (!candidates.length) return;
-  let currentIndex = candidates.indexOf(image.getAttribute("src"));
+  const activeUrl = new URL(activeSource || "", window.location.href).href;
+  let currentIndex = candidates.findIndex((candidate) => new URL(candidate, window.location.href).href === activeUrl);
   if (currentIndex < 0) currentIndex = 0;
   image.dataset.assetFallbackBound = "true";
   image.dataset.assetFallbackIndex = String(currentIndex);
@@ -584,65 +599,99 @@ function installStaticImageFallbacks(root = document) {
   });
 }
 
-function setBookImage(image, source, title) {
-  setArchiveImage(image, source);
+async function setBookImage(image, source, title) {
   image.alt = title;
+  const result = await preloadArchiveImage(source);
+  if (!result.ok) return false;
+  image.onerror = null;
+  image.dataset.archiveSource = String(source || "");
+  image.dataset.assetFallbackBound = "false";
+  image.dataset.assetFallbackIndex = "0";
+  image.src = result.src;
+  bindImageFallback(image, source, result.src);
+  return true;
 }
 
-function renderMemoryPage(nextIndex = memoryIndex, direction = 1) {
+function pause(duration) {
+  return new Promise((resolve) => window.setTimeout(resolve, duration));
+}
+
+function warmBookNeighbors(index) {
+  const pages = getBookPages();
+  [index + 1, index + 2, index - 1].forEach((neighborIndex) => {
+    const page = pages[neighborIndex];
+    if (page?.image) preloadArchiveImage(page.image, { timeout: 10000 }).catch(() => {});
+  });
+}
+
+async function renderMemoryPage(nextIndex = memoryIndex, direction = 1) {
   const pages = getBookPages();
   if (!pages.length) return;
   const targetIndex = Math.max(0, Math.min(nextIndex, pages.length - 1));
   if (targetIndex === memoryIndex && direction !== 0) return;
-
-  const updatePage = () => {
-    memoryIndex = targetIndex;
-    const page = pages[memoryIndex];
-    const isContinuation = page.type === "continuation";
-    const book = $(".memory-book");
-    const stage = $("#bookStage");
-    book.dataset.layout = isContinuation ? "end" : String(memoryIndex % 4);
-    book.dataset.pageType = page.type;
-    stage.dataset.direction = direction < 0 ? "back" : "forward";
-    currentBookPageId = page.id;
-    $("#bookPhoto").hidden = isContinuation;
-    $("#continuationArt").hidden = !isContinuation;
-    $("#bookPhotoIndex").hidden = isContinuation;
-    $(".book-copy").hidden = isContinuation;
-    if (!isContinuation) {
-      setBookImage($("#bookPhoto"), page.image, page.title);
-      $("#bookPhotoIndex").textContent = String(memoryIndex + 1).padStart(2, "0");
-    }
-    $("#bookProgress").textContent = `${String(memoryIndex + 1).padStart(2, "0")} / ${String(pages.length).padStart(2, "0")}`;
-    $("#bookTitle").textContent = page.title;
-    $("#bookNote").textContent = page.type === "entry" ? page.body : "";
-    $("#bookNote").hidden = page.type !== "entry" || !page.body;
-    $$('[data-memory-prev]').forEach((button) => { button.disabled = memoryIndex === 0; });
-    $$('[data-memory-next]').forEach((button) => { button.disabled = memoryIndex === pages.length - 1; });
-  };
-
-  if (direction === 0) {
-    updatePage();
-    return;
-  }
-
   if (isBookTransitioning) return;
   isBookTransitioning = true;
-  const stage = $("#bookStage");
-  stage.classList.remove("is-entering");
-  stage.classList.add("is-leaving");
 
-  window.setTimeout(() => {
-    updatePage();
-    stage.classList.remove("is-leaving");
-    window.requestAnimationFrame(() => {
-      stage.classList.add("is-entering");
-      window.setTimeout(() => {
-        stage.classList.remove("is-entering");
-        isBookTransitioning = false;
-      }, 560);
-    });
-  }, 320);
+  const stage = $("#bookStage");
+  const book = $(".memory-book");
+  const photo = $("#bookPhoto");
+  const photoLoader = $("#bookPhotoLoader");
+  const page = pages[targetIndex];
+  const isContinuation = page.type === "continuation";
+
+  if (direction !== 0) {
+    stage.classList.remove("is-entering");
+    stage.classList.add("is-leaving");
+    await pause(320);
+  }
+
+  memoryIndex = targetIndex;
+  book.dataset.layout = isContinuation ? "end" : String(memoryIndex % 4);
+  book.dataset.pageType = page.type;
+  stage.dataset.direction = direction < 0 ? "back" : "forward";
+  stage.setAttribute("aria-busy", String(!isContinuation));
+  currentBookPageId = page.id;
+  $("#continuationArt").hidden = !isContinuation;
+  $("#bookPhotoIndex").hidden = isContinuation;
+  $(".book-copy").hidden = isContinuation;
+  $("#bookProgress").textContent = `${String(memoryIndex + 1).padStart(2, "0")} / ${String(pages.length).padStart(2, "0")}`;
+  $("#bookTitle").textContent = page.title;
+  $("#bookNote").textContent = page.type === "entry" ? page.body : "";
+  $("#bookNote").hidden = page.type !== "entry" || !page.body;
+  $$('[data-memory-prev]').forEach((button) => { button.disabled = memoryIndex === 0; });
+  $$('[data-memory-next]').forEach((button) => { button.disabled = memoryIndex === pages.length - 1; });
+
+  if (isContinuation) {
+    photo.hidden = true;
+    photoLoader.hidden = true;
+    book.classList.remove("is-photo-loading", "has-photo-error");
+  } else {
+    photo.hidden = true;
+    photoLoader.hidden = false;
+    photoLoader.textContent = "正在打开这一页…";
+    book.classList.add("is-photo-loading");
+    book.classList.remove("has-photo-error");
+    $("#bookPhotoIndex").textContent = String(memoryIndex + 1).padStart(2, "0");
+    const imageLoaded = await setBookImage(photo, page.image, page.title);
+    if (imageLoaded) {
+      photo.hidden = false;
+      photoLoader.hidden = true;
+      book.classList.remove("is-photo-loading");
+      warmBookNeighbors(memoryIndex);
+    } else {
+      photoLoader.textContent = "这一页暂时没有到，点照片区域重新加载";
+      book.classList.add("has-photo-error");
+    }
+  }
+
+  stage.setAttribute("aria-busy", "false");
+  stage.classList.remove("is-leaving");
+  if (direction !== 0) {
+    window.requestAnimationFrame(() => stage.classList.add("is-entering"));
+    await pause(560);
+    stage.classList.remove("is-entering");
+  }
+  isBookTransitioning = false;
 }
 
 function initMemoryBook() {
@@ -650,7 +699,10 @@ function initMemoryBook() {
   const advance = (step) => renderMemoryPage(memoryIndex + step, step);
   $$('[data-memory-next]').forEach((button) => button.addEventListener("click", () => advance(1)));
   $$('[data-memory-prev]').forEach((button) => button.addEventListener("click", () => advance(-1)));
-  $(".book-photo-wrap").addEventListener("click", () => advance(1));
+  $(".book-photo-wrap").addEventListener("click", () => {
+    if ($(".memory-book").classList.contains("is-photo-loading")) renderMemoryPage(memoryIndex, 0);
+    else advance(1);
+  });
   $("#bookStage").addEventListener("keydown", (event) => {
     if (event.key === "ArrowRight" || event.key === "Enter" || event.key === " ") { event.preventDefault(); advance(1); }
     if (event.key === "ArrowLeft") { event.preventDefault(); advance(-1); }
@@ -1283,6 +1335,7 @@ function initReveal() {
   revealItems.forEach((item) => observer.observe(item));
 }
 
+initArchiveImageCache();
 initArchiveLoader();
 installStaticImageFallbacks();
 updateTogetherCounter();

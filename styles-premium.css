@@ -25,6 +25,7 @@
   background: #241b24;
   color: var(--white);
   transition: opacity .45s ease, visibility .45s ease;
+  touch-action: manipulation;
 }
 .archive-loader.is-ready { opacity: 0; visibility: hidden; pointer-events: none; }
 .archive-loader-frame { width: min(100%, 720px); }
@@ -38,11 +39,11 @@
 .loader-progress span { display: block; width: 0; height: 100%; background: var(--coral); transition: width .25s ease; }
 .loader-game-shell { position: relative; padding: 13px 15px 15px; border: 1px solid rgba(255,250,253,.2); background: #342432; }
 .loader-game-topline { margin-bottom: 10px; }
-#birdGame { display: block; width: 100%; height: auto; aspect-ratio: 420 / 240; background: #f7dfe6; cursor: pointer; image-rendering: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+#birdGame { display: block; width: 100%; height: auto; aspect-ratio: 420 / 240; background: #f7dfe6; cursor: pointer; image-rendering: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .loader-game-start { position: absolute; top: 50%; left: 50%; padding: 10px 18px; border: 1px solid var(--cobalt); background: var(--cobalt); color: var(--white); cursor: pointer; font-size: 12px; transform: translate(-50%, -32%); }
 .loader-game-start[hidden] { display: none; }
 .loader-footer { margin-top: 16px; }
-.loader-skip { padding: 0; border: 0; border-bottom: 1px solid rgba(255,250,253,.6); background: transparent; color: var(--white); cursor: pointer; font-size: 11px; }
+.loader-footer b { color: var(--white); font-weight: 600; }
 body.is-loading { overflow: hidden; }
 
 .public-lock[hidden] { display: none; }
@@ -279,6 +280,10 @@ body { background: var(--paper); }
 .book-photo-wrap { position: relative; width: 100%; cursor: pointer; isolation: isolate; }
 .book-photo-wrap img { display: block; width: 100%; height: auto; max-height: none; }
 #bookPhoto[hidden], .continuation-art[hidden] { display: none !important; }
+.memory-book.is-photo-loading .book-photo-wrap { display: grid; min-height: min(58vw, 460px); place-items: center; background: rgba(255,250,253,.3); cursor: progress; }
+.book-photo-loader { z-index: 4; max-width: 250px; padding: 13px 16px; border: 1px solid currentColor; background: rgba(255,250,253,.9); color: currentColor; font-size: 11px; letter-spacing: .08em; line-height: 1.6; text-align: center; }
+.memory-book.has-photo-error .book-photo-wrap { cursor: pointer; }
+.memory-book.has-photo-error .book-photo-loader { border-color: var(--coral); color: var(--cobalt); }
 .book-photo-wrap::after { position: absolute; z-index: 2; inset: 0; background: repeating-linear-gradient(90deg, rgba(248, 231, 236, .96) 0 7%, rgba(248, 231, 236, .04) 7% 9%); content: ""; opacity: 0; pointer-events: none; }
 .book-photo-index { position: relative; z-index: 3; width: max-content; margin: 0 0 13px -2px; color: var(--cobalt); font-family: var(--serif); font-size: 44px; line-height: .8; }
 .book-copy { grid-area: copy; max-width: 390px; }

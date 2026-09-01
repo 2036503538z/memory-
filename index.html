@@ -6,11 +6,11 @@
     <meta name="theme-color" content="#f3f0e8" />
     <meta name="description" content="甜甜与炜炜的私人回忆录：我们把时间留在这里。" />
     <title>甜甜 × 炜炜 / 我们把时间留在这里</title>
-    <link rel="icon" href="memory-01.webp?v=20260829-9" type="image/webp" />
-    <link rel="preload" as="image" href="memory-01.webp?v=20260829-9" type="image/webp" fetchpriority="high" />
-    <link rel="preload" as="image" href="memory-02.webp?v=20260829-9" type="image/webp" fetchpriority="high" />
+    <link rel="icon" href="memory-01.webp?v=20260901-1" type="image/webp" />
+    <link rel="preload" as="image" href="memory-01.webp?v=20260901-1" type="image/webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="memory-02.webp?v=20260901-1" type="image/webp" fetchpriority="high" />
     <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="styles-premium.css?v=20260829-9" />
+    <link rel="stylesheet" href="styles-premium.css?v=20260901-2" />
   </head>
   <body class="is-loading">
     <script>
@@ -20,7 +20,7 @@
         loader.classList.add("is-ready");
         document.body.classList.remove("is-loading");
         window.setTimeout(function () { loader.hidden = true; }, 500);
-      }, 15000);
+      }, 26000);
     </script>
     <div class="archive-loader" id="archiveLoader" role="status" aria-live="polite">
       <div class="archive-loader-frame">
@@ -28,19 +28,19 @@
         <div class="loader-heading">
           <div>
             <p class="eyebrow">正在打开你们的时间</p>
-            <h1>先玩一会儿，<br /><em>回忆马上到。</em></h1>
+            <h1>玩满二十秒，<br /><em>回忆马上到。</em></h1>
           </div>
           <strong id="loaderPercent">0%</strong>
         </div>
         <div class="loader-progress" aria-hidden="true"><span id="loaderProgress"></span></div>
         <div class="loader-game-shell">
-          <div class="loader-game-topline"><span>WAITING GAME</span><span id="birdGameScore">00</span></div>
+          <div class="loader-game-topline"><span>WAITING GAME</span><span><b id="loaderCountdown">20</b>S · <b id="birdGameScore">00</b></span></div>
           <canvas id="birdGame" width="420" height="240" aria-label="加载时玩小鸟游戏"></canvas>
           <button class="loader-game-start" id="birdGameStart" type="button">开始游戏</button>
         </div>
         <div class="loader-footer">
-          <span id="loaderMessage">首屏照片准备中</span>
-          <button class="loader-skip" id="loaderSkip" type="button">先进入</button>
+          <span id="loaderMessage">正在准备照片 · 0 / 37</span>
+          <span>照片同步中</span>
         </div>
       </div>
     </div>
@@ -114,11 +114,11 @@
           </div>
           <div class="hero-collage" aria-label="回忆照片预览">
             <figure class="hero-photo hero-photo-main photo-trigger" data-image="assets/memory-01.jpg" data-caption="我们把手比成了一个小小的心。">
-              <img src="memory-01.webp?v=20260829-9" data-archive-source="assets/memory-01.jpg" alt="两只手在夕阳下组成心形" fetchpriority="high" />
+              <img src="memory-01.webp?v=20260901-1" data-archive-source="assets/memory-01.jpg" alt="两只手在夕阳下组成心形" fetchpriority="high" />
               <figcaption>我们的第一件小事</figcaption>
             </figure>
             <figure class="hero-photo hero-photo-side photo-trigger" data-image="assets/memory-02.jpg" data-caption="出发这件事，本身就很值得纪念。">
-              <img src="memory-02.webp?v=20260829-9" data-archive-source="assets/memory-02.jpg" alt="一起走在旅途中的风景" fetchpriority="high" />
+              <img src="memory-02.webp?v=20260901-1" data-archive-source="assets/memory-02.jpg" alt="一起走在旅途中的风景" fetchpriority="high" />
               <figcaption>一起走在路上</figcaption>
             </figure>
             <div class="hero-stamp"><span>03</span><small>years<br />of us</small></div>
@@ -138,7 +138,8 @@
             <div class="book-photo-column">
               <div class="book-photo-index" id="bookPhotoIndex">01</div>
               <div class="book-photo-wrap">
-                <img id="bookPhoto" src="01.webp?v=20260829-9" data-archive-source="assets/chapters/01.jpg" alt="" fetchpriority="high" />
+                <img id="bookPhoto" src="01.webp?v=20260901-1" data-archive-source="assets/chapters/01.jpg" alt="" fetchpriority="high" />
+                <div class="book-photo-loader" id="bookPhotoLoader" hidden role="status">正在打开这一页…</div>
                 <div class="continuation-art" id="continuationArt" hidden aria-hidden="true">
                   <span>未完</span>
                   <strong>待续</strong>
@@ -170,7 +171,7 @@
             <article class="memory memory--hero reveal">
               <div class="memory-meta"><span>CHAPTER 01</span></div>
               <div class="memory-media photo-trigger" data-image="assets/memory-03.jpg" data-caption="第一次见面之后，城市还是原来的城市，我们已经不是了。">
-                <img src="memory-03.webp?v=20260829-9" data-archive-source="assets/memory-03.jpg" alt="黄昏时的城市与天空" loading="lazy" />
+                <img src="memory-03.webp?v=20260901-1" data-archive-source="assets/memory-03.jpg" alt="黄昏时的城市与天空" loading="lazy" />
               </div>
               <div class="memory-copy">
                 <h3>第一次见面之后</h3>
@@ -182,7 +183,7 @@
             <article class="memory memory--split reveal">
               <div class="memory-meta"><span>CHAPTER 02</span></div>
               <div class="memory-media photo-trigger" data-image="assets/memory-04.jpg" data-caption="旅行不是去哪里，是和谁一起把路走完。">
-                <img src="memory-04.webp?v=20260829-9" data-archive-source="assets/memory-04.jpg" alt="旅途中靠近的两个人" loading="lazy" />
+                <img src="memory-04.webp?v=20260901-1" data-archive-source="assets/memory-04.jpg" alt="旅途中靠近的两个人" loading="lazy" />
               </div>
               <div class="memory-copy">
                 <h3>第一次一起出发</h3>
@@ -200,7 +201,7 @@
                 <span class="memory-caption">THE UNPLANNED ONES</span>
               </div>
               <div class="memory-media photo-trigger" data-image="assets/memory-05.jpg" data-caption="最想重复的不是目的地，是和你一起浪费时间。">
-                <img src="memory-05.webp?v=20260829-9" data-archive-source="assets/memory-05.jpg" alt="窗边的植物和温柔光线" loading="lazy" />
+                <img src="memory-05.webp?v=20260901-1" data-archive-source="assets/memory-05.jpg" alt="窗边的植物和温柔光线" loading="lazy" />
               </div>
             </article>
 
@@ -222,7 +223,7 @@
             <p>把你们最想留下的那段视频放在这里。它会是回忆录的中场，也是进入日记之前的一次停顿。</p>
           </div>
           <div class="video-frame reveal">
-            <video id="memoryVideo" controls preload="metadata" poster="memory-01.webp?v=20260829-9" aria-label="我们的回忆视频">
+            <video id="memoryVideo" controls preload="metadata" poster="memory-01.webp?v=20260901-1" aria-label="我们的回忆视频">
               <p>当前还没有添加视频。</p>
             </video>
             <div class="video-empty" id="videoEmpty">
@@ -421,6 +422,6 @@
     <script defer src="supabase-config.js"></script>
     <script defer src="public-config.js"></script>
     <script defer src="memories-data.js"></script>
-    <script defer src="app.js?v=20260829-9"></script>
+    <script defer src="app.js?v=20260901-2"></script>
   </body>
 </html>
