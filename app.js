@@ -5,6 +5,7 @@ const anniversaryMonth = 1;
 const anniversaryDay = 17;
 const photoBucket = "memory-photos";
 const voiceBucket = "memory-voices";
+const ARCHIVE_ASSET_VERSION = "20260829-9";
 const memoryPages = Array.isArray(window.MEMORY_PAGES) ? window.MEMORY_PAGES : [];
 const cloudConfig = window.SUPABASE_CONFIG || {};
 const cloudReady = Boolean(window.supabase && cloudConfig.url && cloudConfig.anonKey);
@@ -317,7 +318,7 @@ function archiveImageCandidates(source) {
   const filename = assetMatch ? assetMatch[2] : rootMatch[1];
   const extension = (assetMatch ? assetMatch[3] : rootMatch[2]).toLowerCase();
   const isChapter = assetMatch ? Boolean(assetMatch[1]) : /^\d{2}$/.test(filename);
-  const optimized = `${filename}.webp`;
+  const optimized = `${filename}.webp?v=${ARCHIVE_ASSET_VERSION}`;
   const rootOriginal = extension === "webp" ? "" : `${filename}.${extension}`;
   const assetsOriginal = `assets/${isChapter ? "chapters/" : ""}${filename}.${extension}`;
   const ordered = [optimized, rootOriginal, assetsOriginal];
